@@ -8,12 +8,15 @@ from flask_cors import CORS
 from api.routes import chat_bp
 from nlp.pipeline import load_pipeline
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def create_app():
     app = Flask(
         __name__,
-        template_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates"),
-        static_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+        template_folder=os.path.join(BASE_DIR, "templates"),
+        static_folder=os.path.join(BASE_DIR, "static"),
+        static_url_path="/static"
     )
 
     CORS(app)

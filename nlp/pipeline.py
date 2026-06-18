@@ -1,7 +1,8 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
 
 from nlp import preprocessor, vectorizer, classifier, retriever
 
@@ -10,14 +11,17 @@ CONFIDENCE_THRESHOLD = 0.3
 FALLBACK_ANSWER = (
     "Sorry, I could not find a relevant answer to your question. "
     "Please contact the XMUM Admissions Office at admissions@xmu.edu.my "
-    "for further assistance."
+    "for further information."
 )
 
 
 def load_pipeline():
-    vectorizer.load()
-    classifier.load()
-    retriever.load()
+    vectorizer.load(os.path.join(ROOT_DIR, "models", "tfidf_vectorizer.pkl"))
+    classifier.load(os.path.join(ROOT_DIR, "models", "svm_classifier.pkl"))
+    retriever.load(
+        os.path.join(ROOT_DIR, "models", "faq_vectors.pkl"),
+        os.path.join(ROOT_DIR, "models", "faq_metadata.pkl")
+    )
 
 
 def get_response(user_query):
@@ -36,24 +40,14 @@ def get_response(user_query):
 
     predicted_intent, svm_confidence = classifier.predict(query_vector)
 
-    answer, similarity_score, matched_question, matched_id, matched_intent = retriever.retrieve(
+    answer, similarity_score, matched_question, matched_id, _ = retriever.retrieve(
         query_vector, predicted_intent
     )
 
-    if similarity_score < CONFIDENCE_THRESHOLD or predicted_intent == "out_of_scope":
-        # Global fallback retrieval
-        gb_answer, gb_score, gb_question, gb_id, gb_intent = retriever.retrieve(query_vector, None)
-        if gb_score >= CONFIDENCE_THRESHOLD and gb_intent != "out_of_scope":
-            answer = gb_answer
-            similarity_score = gb_score
-            matched_question = gb_question
-            matched_id = gb_id
-            matched_intent = gb_intent
-
-    if similarity_score >= CONFIDENCE_THRESHOLD and matched_intent != "out_of_scope":
+    if similarity_score >= CONFIDENCE_THRESHOLD and predicted_intent != "out_of_scope":
         return {
             "answer": answer,
-            "intent": matched_intent,
+            "intent": predicted_intent,
             "confidence": round(similarity_score, 4),
             "matched_question": matched_question,
             "id": matched_id

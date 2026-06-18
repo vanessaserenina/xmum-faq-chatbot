@@ -5,13 +5,14 @@ import csv
 import numpy as np
 import pickle
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
 
 from nlp import preprocessor, vectorizer, classifier, retriever
 
-CORPUS_PATH = "data/uni_faq_corpus.json"
-FLAT_CSV_PATH = "data/corpus_flat.csv"
-MODELS_DIR = "models"
+CORPUS_PATH = os.path.join(ROOT_DIR, "data", "uni_faq_corpus.json")
+FLAT_CSV_PATH = os.path.join(ROOT_DIR, "data", "corpus_flat.csv")
+MODELS_DIR = os.path.join(ROOT_DIR, "models")
 
 
 def load_and_flatten(corpus_path):
@@ -55,12 +56,12 @@ def main():
 
     print("Fitting TF-IDF and transforming corpus...")
     X = vectorizer.fit_transform(preprocessed_questions)
-    vectorizer.save()
+    vectorizer.save(os.path.join(MODELS_DIR, "tfidf_vectorizer.pkl"))
     print(f"TF-IDF vectorizer saved. Matrix shape: {X.shape}")
 
     print("Training SVM classifier...")
     classifier.train(X, intents)
-    classifier.save()
+    classifier.save(os.path.join(MODELS_DIR, "svm_classifier.pkl"))
     print("SVM classifier saved.")
 
     print("Saving FAQ vectors and metadata...")
@@ -73,7 +74,12 @@ def main():
         }
         for r in rows
     ]
-    retriever.save(X, faq_metadata)
+    retriever.save(
+        X,
+        faq_metadata,
+        os.path.join(MODELS_DIR, "faq_vectors.pkl"),
+        os.path.join(MODELS_DIR, "faq_metadata.pkl")
+    )
     print("FAQ vectors and metadata saved.")
 
     intent_counts = {}

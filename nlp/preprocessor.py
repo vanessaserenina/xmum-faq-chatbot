@@ -17,7 +17,10 @@ SYNONYMS = {
     "application": "admission",
     "dorm": "accommodation",
     "hostel": "accommodation",
-    "room": "accommodation"
+    "room": "accommodation",
+    "office": "department",
+    "dept": "department",
+    "alumni": "graduate"
 }
 
 STOP_WORDS = set(stopwords.words("english"))
@@ -36,7 +39,6 @@ def preprocess(text):
 
     tokens = [t for t in tokens if t not in STOP_WORDS]
 
-    # Synonym expansion
     expanded = []
     for t in tokens:
         if t in SYNONYMS:
