@@ -7,6 +7,8 @@ sys.path.insert(0, ROOT_DIR)
 from nlp import preprocessor, vectorizer, classifier, retriever
 
 CONFIDENCE_THRESHOLD = 0.3
+SVM_WEIGHT = 0.4
+COSINE_WEIGHT = 0.6
 
 FALLBACK_ANSWER = (
     "Sorry, I could not find a relevant answer to your question. "
@@ -37,26 +39,30 @@ def get_response(user_query):
         }
 
     query_vector = vectorizer.transform(cleaned)
-
     predicted_intent, svm_confidence = classifier.predict(query_vector)
 
     answer, similarity_score, matched_question, matched_id, _ = retriever.retrieve(
         query_vector, predicted_intent
     )
 
-    if similarity_score >= CONFIDENCE_THRESHOLD and predicted_intent != "out_of_scope":
-        return {
+    combined_score = SVM_WEIGHT * svm_confidence + COSINE_WEIGHT * similarity_score
+
+    if combined_score >= CONFIDENCE_THRESHOLD and predicted_intent != "out_of_scope":
+        result = {
             "answer": answer,
             "intent": predicted_intent,
-            "confidence": round(similarity_score, 4),
+            "confidence": round(combined_score, 4),
             "matched_question": matched_question,
             "id": matched_id
         }
+        print(f"Intent: {result['intent']}, Combined confidence: {result['confidence']} "
+              f"(SVM: {svm_confidence:.4f}, Cosine: {similarity_score:.4f})")
+        return result
 
     return {
         "answer": FALLBACK_ANSWER,
         "intent": "out_of_scope",
-        "confidence": round(similarity_score, 4),
+        "confidence": round(combined_score, 4),
         "matched_question": None,
         "id": None
     }

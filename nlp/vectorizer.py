@@ -1,20 +1,25 @@
+import os
 import pickle
+import threading
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-VECTORIZER_PATH = "models/tfidf_vectorizer.pkl"
+_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+VECTORIZER_PATH = os.path.join(_MODULE_DIR, "..", "models", "tfidf_vectorizer.pkl")
 
+_lock = threading.RLock()
 _vectorizer = None
 
 
 def get_vectorizer():
     global _vectorizer
-    if _vectorizer is None:
-        _vectorizer = TfidfVectorizer(
-            ngram_range=(1, 2),
-            max_features=5000,
-            sublinear_tf=True
-        )
-    return _vectorizer
+    with _lock:
+        if _vectorizer is None:
+            _vectorizer = TfidfVectorizer(
+                ngram_range=(1, 2),
+                max_features=5000,
+                sublinear_tf=True
+            )
+        return _vectorizer
 
 
 def fit_transform(docs):
@@ -31,11 +36,14 @@ def transform(query):
 
 
 def save(path=VECTORIZER_PATH):
-    with open(path, "wb") as f:
-        pickle.dump(get_vectorizer(), f)
+    with _lock:
+        with open(path, "wb") as f:
+            pickle.dump(get_vectorizer(), f)
 
 
 def load(path=VECTORIZER_PATH):
     global _vectorizer
     with open(path, "rb") as f:
-        _vectorizer = pickle.load(f)
+        loaded = pickle.load(f)
+    with _lock:
+        _vectorizer = loaded

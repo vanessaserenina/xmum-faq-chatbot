@@ -2,7 +2,9 @@ import string
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
+
+for _resource in ("punkt_tab", "stopwords", "wordnet", "omw-1.4"):
+    nltk.download(_resource, quiet=True)
 
 SYNONYMS = {
     "fees": "tuition",
@@ -24,7 +26,9 @@ SYNONYMS = {
 }
 
 STOP_WORDS = set(stopwords.words("english"))
-LEMMATIZER = WordNetLemmatizer()
+
+from nltk.stem import PorterStemmer
+_STEMMER = PorterStemmer()
 
 
 def preprocess(text):
@@ -32,11 +36,9 @@ def preprocess(text):
         return ""
 
     text = text.lower()
-
     text = text.translate(str.maketrans("", "", string.punctuation))
 
     tokens = word_tokenize(text)
-
     tokens = [t for t in tokens if t not in STOP_WORDS]
 
     expanded = []
@@ -47,6 +49,5 @@ def preprocess(text):
             expanded.append(t)
     tokens = expanded
 
-    tokens = [LEMMATIZER.lemmatize(t) for t in tokens]
-
+    tokens = [_STEMMER.stem(t) for t in tokens]
     return " ".join(tokens)

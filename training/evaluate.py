@@ -2,7 +2,8 @@ import os
 import sys
 import json
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
 
 import numpy as np
 from sklearn.svm import SVC
@@ -13,8 +14,8 @@ import seaborn as sns
 
 from nlp import preprocessor, vectorizer as vec_module
 
-CORPUS_PATH = "data/uni_faq_corpus.json"
-REPORTS_DIR = "training"
+CORPUS_PATH = os.path.join(ROOT_DIR, "data", "uni_faq_corpus.json")
+REPORTS_DIR = os.path.join(ROOT_DIR, "training")
 
 
 def load_and_flatten(path):
@@ -88,6 +89,7 @@ def main():
     plt.xticks(rotation=30, ha="right")
     plt.yticks(rotation=0)
     plt.tight_layout()
+    os.makedirs(REPORTS_DIR, exist_ok=True)
     cm_path = os.path.join(REPORTS_DIR, "confusion_matrix.png")
     plt.savefig(cm_path, dpi=150)
     plt.close()
@@ -95,7 +97,6 @@ def main():
 
     print("\nTesting confidence threshold values...")
     from sklearn.metrics.pairwise import cosine_similarity as cos_sim
-    import pickle
 
     model.fit(X, y)
 
@@ -110,7 +111,6 @@ def main():
     X_train_t = X[tr]
     y_train_t = [y[i] for i in tr]
     X_test_t = X[te]
-    y_test_t = [y[i] for i in te]
 
     thresh_model = SVC(kernel="linear", C=1.0, probability=True)
     thresh_model.fit(X_train_t, y_train_t)
@@ -134,6 +134,7 @@ def main():
         pct_fallback = fallback / len(scores) * 100
         pct_answered = 100 - pct_fallback
         print(f"{threshold:<12} {pct_fallback:<14.1f} {pct_answered:.1f}")
+
 
 if __name__ == "__main__":
     main()

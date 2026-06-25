@@ -20,7 +20,8 @@ def chat():
         return jsonify({"error": "Empty message"}), 400
 
     result = get_response(message)
-    return jsonify(result)
+    filtered_result = {k: v for k, v in result.items() if k not in ('intent', 'confidence')}
+    return jsonify(filtered_result)
 
 
 @chat_bp.route("/health", methods=["GET"])

@@ -43,28 +43,31 @@ def export_flat_csv(rows, path):
 def main():
     os.makedirs(MODELS_DIR, exist_ok=True)
 
-    print("Loading corpus...")
+    print("Loading corpus...", flush=True)
     rows = load_and_flatten(CORPUS_PATH)
-    print(f"Loaded {len(rows)} question rows across {len(set(r['intent'] for r in rows))} intents.")
+    print(f"Loaded {len(rows)} question rows across {len(set(r['intent'] for r in rows))} intents.", flush=True)
 
     export_flat_csv(rows, FLAT_CSV_PATH)
-    print(f"Flat CSV exported to {FLAT_CSV_PATH}")
+    print(f"Flat CSV exported to {FLAT_CSV_PATH}", flush=True)
 
-    print("Preprocessing questions...")
+    print("Preprocessing questions...", flush=True)
     preprocessed_questions = [preprocessor.preprocess(r["question"]) for r in rows]
     intents = [r["intent"] for r in rows]
 
-    print("Fitting TF-IDF and transforming corpus...")
+    print("Entering fit_transform", flush=True)
     X = vectorizer.fit_transform(preprocessed_questions)
-    vectorizer.save(os.path.join(MODELS_DIR, "tfidf_vectorizer.pkl"))
-    print(f"TF-IDF vectorizer saved. Matrix shape: {X.shape}")
+    print("fit_transform finished", flush=True)
 
-    print("Training SVM classifier...")
+    print("About to save vectorizer", flush=True)
+    vectorizer.save(os.path.join(MODELS_DIR, "tfidf_vectorizer.pkl"))
+    print("Vectorizer saved", flush=True)
+
+    print("Training SVM classifier...", flush=True)
     classifier.train(X, intents)
     classifier.save(os.path.join(MODELS_DIR, "svm_classifier.pkl"))
-    print("SVM classifier saved.")
+    print("SVM classifier saved.", flush=True)
 
-    print("Saving FAQ vectors and metadata...")
+    print("Saving FAQ vectors and metadata...", flush=True)
     faq_metadata = [
         {
             "id": r["id"],
@@ -80,16 +83,16 @@ def main():
         os.path.join(MODELS_DIR, "faq_vectors.pkl"),
         os.path.join(MODELS_DIR, "faq_metadata.pkl")
     )
-    print("FAQ vectors and metadata saved.")
+    print("FAQ vectors and metadata saved.", flush=True)
 
     intent_counts = {}
     for intent in intents:
         intent_counts[intent] = intent_counts.get(intent, 0) + 1
 
-    print("\nTraining complete.")
-    print(f"Total: {len(rows)} questions across {len(intent_counts)} intents")
+    print("\nTraining complete.", flush=True)
+    print(f"Total: {len(rows)} questions across {len(intent_counts)} intents", flush=True)
     for intent, count in sorted(intent_counts.items()):
-        print(f"  {intent}: {count}")
+        print(f"  {intent}: {count}", flush=True)
 
 
 if __name__ == "__main__":
