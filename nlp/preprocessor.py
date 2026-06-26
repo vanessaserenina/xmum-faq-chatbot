@@ -3,8 +3,16 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-for _resource in ("punkt_tab", "stopwords", "wordnet", "omw-1.4"):
-    nltk.download(_resource, quiet=True)
+def _ensure_nltk(resource, resource_type="corpora"):
+    try:
+        nltk.data.find(f"{resource_type}/{resource}")
+    except LookupError:
+        nltk.download(resource, quiet=True)
+
+_ensure_nltk("punkt_tab",  "tokenizers")
+_ensure_nltk("stopwords",  "corpora")
+_ensure_nltk("wordnet",    "corpora")
+_ensure_nltk("omw-1.4",   "corpora")
 
 SYNONYMS = {
     "fees": "tuition",
