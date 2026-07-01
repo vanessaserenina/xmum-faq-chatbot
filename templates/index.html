@@ -7,13 +7,11 @@
   <title>Ask XMUM</title>
   <meta name="description"
     content="Get instant answers about Xiamen University Malaysia (XMUM) admissions, programs, fees, scholarships, and campus life using our AI-powered FAQ Chatbot.">
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -592,9 +590,7 @@
       </div>
     </header>
 
-    <!-- Body split -->
     <div class="chat-body-split">
-      <!-- Sidebar with suggestions -->
       <aside class="sidebar">
         <div class="sidebar-section-title">Common Topics</div>
         <div class="suggestion-list">
@@ -625,10 +621,8 @@
         </div>
       </aside>
 
-      <!-- Chat screen -->
       <main class="chat-main">
         <div class="messages-area" id="messages-area-id">
-          <!-- Welcome message -->
           <div class="message-row bot-message-row">
             <div class="message-avatar bot-avatar">
               <i class="fa-solid fa-robot"></i>
@@ -650,9 +644,7 @@ Ask me anything about:
           </div>
         </div>
 
-        <!-- Input area -->
         <div class="input-container">
-          <!-- Mobile suggestions scrollbar -->
           <div class="mobile-suggestions">
             <div class="mobile-pill" onclick="sendSuggestion('How do I apply?')">Apply Process</div>
             <div class="mobile-pill" onclick="sendSuggestion('What courses are available?')">Available Programs</div>
@@ -662,7 +654,6 @@ Ask me anything about:
             <div class="mobile-pill" onclick="sendSuggestion('Where is XMUM campus located?')">Location</div>
           </div>
 
-          <!-- Input form -->
           <form class="input-form" id="chat-form" onsubmit="handleChatSubmit(event)">
             <div class="input-wrapper">
               <input type="text" class="chat-input" id="user-input-field" placeholder="Type your question about XMUM..."
@@ -708,7 +699,6 @@ Ask me anything about:
 
     function clearConversation() {
       if (confirm("Are you sure you want to clear the chat history?")) {
-        // Remove all messages except the first welcome message
         const welcomeMsg = messagesArea.firstElementChild;
         messagesArea.innerHTML = '';
         if (welcomeMsg) {
