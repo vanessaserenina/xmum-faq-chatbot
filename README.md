@@ -352,7 +352,7 @@ All serialised artefacts are stored in `models/` and are produced by `training/t
 | `POST` | `/chat` | Accepts a JSON body, returns a JSON answer |
 | `GET` | `/health` | Returns system health and model load status |
 
-### `POST /chat` — Request
+### `POST /chat` - Request
 
 ```json
 {
@@ -360,7 +360,7 @@ All serialised artefacts are stored in `models/` and are produced by `training/t
 }
 ```
 
-### `POST /chat` — Response (success)
+### `POST /chat` - Response (success)
 
 ```json
 {
@@ -372,7 +372,7 @@ All serialised artefacts are stored in `models/` and are produced by `training/t
 }
 ```
 
-### `POST /chat` — Response (fallback)
+### `POST /chat` - Response (fallback)
 
 ```json
 {
@@ -384,7 +384,7 @@ All serialised artefacts are stored in `models/` and are produced by `training/t
 }
 ```
 
-### `GET /health` — Response
+### `GET /health` - Response
 
 ```json
 {
@@ -496,7 +496,7 @@ python training/evaluate.py
 | `seaborn` | `>=0.12.0` | Heatmap styling for confusion matrix |
 
 **NLTK Data Packages required at runtime:**
-- `punkt` / `punkt_tab` — word tokenisation
+- `punkt` / `punkt_tab` - word tokenisation
 - `stopwords` - English stopword list
 - `wordnet` - WordNet lemmatiser lexicon
 
