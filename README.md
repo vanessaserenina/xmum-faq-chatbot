@@ -58,7 +58,7 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
 │                  POST /chat    GET /health                          │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  HTTP / JSON
-┌──────────────────────────▼──────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────┐
 │                     Flask REST API  (api/)                          │
 │   app.py (Application Factory)  -->  routes.py (Blueprint)          │
 │                                                                     │
@@ -68,7 +68,7 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
 │     GET  /health    -> Returns system health status                 │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  in-process function call
-┌──────────────────────────▼──────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────┐
 │                   NLP Inference Pipeline  (nlp/)                    │
 │                                                                     │
 │  1. preprocessor.py  -> lowercase, strip punctuation, tokenise,     │
@@ -87,7 +87,7 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
 │                         returns structured JSON response            │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  pickle.load at startup
-┌──────────────────────────▼──────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────┐
 │                      Serialised Model Artefacts  (models/)          │
 │                                                                     │
 │   tfidf_vectorizer.pkl   - Fitted TfidfVectorizer                   │
@@ -97,7 +97,7 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
 │                            answer                                   │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  train.py reads
-┌──────────────────────────▼──────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────┐
 │                        Corpus  (data/)                              │
 │                                                                     │
 │   uni_faq_corpus.json    - Structured intent→QA corpus              │
@@ -120,8 +120,7 @@ User Query (string)
                   │
                   └──>  cosine_similarity(query_vec, filtered_faq_vecs)
                                │
-                               ▼
-                         best_score  ≥  CONFIDENCE_THRESHOLD (0.3)?
+                         best_score  >=  CONFIDENCE_THRESHOLD (0.3)?
                                      ├── YES -> return matched answer
                                      └── NO  -> return fallback message
 ```
