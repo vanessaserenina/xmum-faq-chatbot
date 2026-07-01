@@ -1,6 +1,6 @@
-# Ask XMUM — Undergraduate Admissions FAQ Chatbot
+# Ask XMUM - Undergraduate Admissions FAQ Chatbot
 
-> **An intelligent, retrieval-based FAQ chatbot for Xiamen University Malaysia (XMUM), powered by a hybrid NLP pipeline combining TF-IDF vectorisation, Support Vector Machine intent classification, and cosine similarity retrieval.**
+> **An intelligent, retrieval-based FAQ chatbot for Xiamen University Malaysia (XMUM), using by a hybrid NLP pipeline combining TF-IDF vectorisation, Support Vector Machine intent classification, and cosine similarity retrieval.**
 
 ---
 
@@ -31,23 +31,21 @@
     - 11.7 [Run the Application](#117-run-the-application)
     - 11.8 [Run the Evaluator (Optional)](#118-run-the-evaluator-optional)
 12. [API Reference](#12-api-reference)
-13. [Known Issues & Technical Debt](#13-known-issues--technical-debt)
-14. [Potential Improvements](#14-potential-improvements)
-15. [Acknowledgements](#15-acknowledgements)
+13. [Acknowledgements](#15-acknowledgements)
 
 ---
 
 ## 1. Project Overview
 
-**Ask XMUM** is a domain-specific, retrieval-based FAQ chatbot purpose-built for handling undergraduate admissions enquiries for [Xiamen University Malaysia (XMUM)](https://www.xmu.edu.my). It is designed to serve prospective students who have questions about admissions, programs, entry requirements, tuition fees, scholarships, campus life, and more.
+**Ask XMUM** is a domain-specific, retrieval-based FAQ chatbot that is built for handling undergraduate admissions enquiries for [Xiamen University Malaysia (XMUM)](https://www.xmu.edu.my). It is designed to serve prospective students who have questions about admissions, programs, entry requirements, tuition fees, scholarships, campus life, and more.
 
-Unlike large language model (LLM)-based chatbots, this system is:
-- **Fully offline and self-contained** — no third-party AI API calls at inference time.
-- **Deterministic and auditable** — responses are always traceable to a specific QA pair in the corpus.
-- **Computationally lightweight** — runs comfortably on CPU with minimal RAM.
-- **Domain-bounded** — explicitly designed to fall back gracefully when queries are out of scope.
+This system is:
+- **Fully offline and self-contained** - no third-party AI API calls at inference time.
+- **Deterministic and auditable** - responses are always traceable to a specific QA pair in the corpus.
+- **Computationally lightweight** - runs comfortably on CPU with minimal RAM.
+- **Domain-bounded** - explicitly designed to fall back gracefully when queries are out of scope.
 
-The core NLP pipeline is built from classical machine learning techniques: **TF-IDF** for representation, **SVM** for intent classification, and **cosine similarity** for answer retrieval. The backend is served via a **Flask** REST API, and the frontend is a self-contained single-page HTML/CSS/JS chat interface.
+The core NLP pipeline is built from classical machine learning techniques: **TF-IDF** for representation, **SVM** for intent classification, and **cosine similarity** for answer retrieval. The backend is served using a **Flask** REST API, and the frontend is a self-contained single-page HTML/CSS/JS chat interface.
 
 ---
 
@@ -62,49 +60,48 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
                            │  HTTP / JSON
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                     Flask REST API  (api/)                          │
-│   app.py (Application Factory)  ──►  routes.py (Blueprint)          │
+│   app.py (Application Factory)  -->  routes.py (Blueprint)          │
 │                                                                     │
 │   Endpoints:                                                        │
-│     GET  /          → Serves chat UI (render_template)              │
-│     POST /chat      → Accepts JSON query, returns JSON answer       │
-│     GET  /health    → Returns system health status                  │
+│     GET  /          -> Serves chat UI (render_template)              │
+│     POST /chat      -> Accepts JSON query, returns JSON answer       │
+│     GET  /health    -> Returns system health status                  │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  in-process function call
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                   NLP Inference Pipeline  (nlp/)                    │
 │                                                                     │
-│  1. preprocessor.py  → lowercase, strip punctuation, tokenise,      │
+│  1. preprocessor.py  -> lowercase, strip punctuation, tokenise,      │
 │                         remove stopwords, synonym expand, lemmatise  │
 │                                                                     │
-│  2. vectorizer.py    → TF-IDF transform (unigrams + bigrams,        │
+│  2. vectorizer.py    -> TF-IDF transform (unigrams + bigrams,        │
 │                         max 5000 features, sublinear TF scaling)    │
 │                                                                     │
-│  3. classifier.py    → SVM (linear kernel, C=1.0) predicts intent  │
+│  3. classifier.py    -> SVM (linear kernel, C=1.0) predicts intent  │
 │                         + probability score                          │
 │                                                                     │
-│  4. retriever.py     → Cosine similarity against intent-filtered    │
+│  4. retriever.py     -> Cosine similarity against intent-filtered    │
 │                         FAQ vectors, returns best-matching answer   │
 │                                                                     │
-│  5. pipeline.py      → Orchestrates 1-4; applies confidence gate;   │
+│  5. pipeline.py      -> Orchestrates 1-4, applies confidence gate,   │
 │                         returns structured JSON response            │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  pickle.load at startup
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                      Serialised Model Artefacts  (models/)          │
 │                                                                     │
-│   tfidf_vectorizer.pkl   ─ Fitted TfidfVectorizer (~155 KB)         │
-│   svm_classifier.pkl     ─ Trained SVC with probability (~327 KB)   │
-│   faq_vectors.pkl        ─ TF-IDF matrix of all corpus questions     │
-│                            (~140 KB, sparse)                        │
-│   faq_metadata.pkl       ─ List of dicts: id, intent, question,     │
-│                            answer (~205 KB)                         │
+│   tfidf_vectorizer.pkl   - Fitted TfidfVectorizer                   │
+│   svm_classifier.pkl     - Trained SVC with probability             │
+│   faq_vectors.pkl         TF-IDF matrix of all corpus questions     │
+│   faq_metadata.pkl       - List of dicts: id, intent, question,     │
+│                            answer                                   │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  train.py reads
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                        Corpus  (data/)                              │
 │                                                                     │
-│   uni_faq_corpus.json    ─ Structured intent→QA corpus (~209 KB)    │
-│   corpus_flat.csv        ─ Flattened row-per-question CSV (~927 KB) │
+│   uni_faq_corpus.json    - Structured intent→QA corpus              │
+│   corpus_flat.csv        - Flattened row-per-question CSV           │
 │                            (auto-generated by train.py)             │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -113,22 +110,20 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
 ```
 User Query (string)
       │
-      ▼
-  Preprocessor  →  cleaned text string
+  Preprocessor  ->  cleaned text string
       │
-      ▼
-  Vectorizer.transform  →  sparse TF-IDF vector  (1 × V)
+  Vectorizer.transform  ->  sparse TF-IDF vector  (1 x V)
       │
-      ├──►  SVM Classifier  →  predicted_intent,  svm_confidence
+      ├──>  SVM Classifier  ->  predicted_intent,  svm_confidence
       │
-      └──►  Retriever (filtered by intent)
+      └──>  Retriever (filtered by intent)
                   │
-                  └──►  cosine_similarity(query_vec, filtered_faq_vecs)
+                  └──>  cosine_similarity(query_vec, filtered_faq_vecs)
                                │
                                ▼
                          best_score  ≥  CONFIDENCE_THRESHOLD (0.3)?
-                                     ├── YES → return matched answer
-                                     └── NO  → return fallback message
+                                     ├── YES -> return matched answer
+                                     └── NO  -> return fallback message
 ```
 
 ---
@@ -184,12 +179,12 @@ Every user query is passed through a deterministic preprocessing pipeline before
 
 | Step | Operation | Example |
 |------|-----------|---------|
-| 1 | Lowercase | `"What are the Fees?"` → `"what are the fees?"` |
-| 2 | Punctuation removal | `"fees?"` → `"fees"` |
-| 3 | NLTK word tokenisation | `"what are the fees"` → `["what", "are", "the", "fees"]` |
-| 4 | Stopword removal | `["what", "are", "the", "fees"]` → `["fees"]` |
-| 5 | Synonym expansion | `["fees"]` → `["tuition"]` |
-| 6 | WordNet lemmatisation | `["tuition"]` → `["tuition"]` |
+| 1 | Lowercase | `"What are the Fees?"` -> `"what are the fees?"` |
+| 2 | Punctuation removal | `"fees?"` -> `"fees"` |
+| 3 | NLTK word tokenisation | `"what are the fees"` -> `["what", "are", "the", "fees"]` |
+| 4 | Stopword removal | `["what", "are", "the", "fees"]` -> `["fees"]` |
+| 5 | Synonym expansion | `["fees"]` -> `["tuition"]` |
+| 6 | WordNet lemmatisation | `["tuition"]` -> `["tuition"]` |
 
 **Synonym Dictionary** (13 mappings, defined in `preprocessor.py`):
 
@@ -204,7 +199,7 @@ Every user query is passed through a deterministic preprocessing pipeline before
 | `office`, `dept` | `department` |
 | `alumni` | `graduate` |
 
-The synonym expansion is applied **before** lemmatisation, which means common colloquial synonyms are normalised to canonical corpus vocabulary, improving recall for informal queries.
+The synonym expansion is applied before lemmatisation, which means common synonyms are normalised to canonical corpus vocabulary to improve recall for informal queries.
 
 ### 4.2 TF-IDF Vectorisation
 
@@ -228,7 +223,7 @@ TfidfVectorizer(
 
 **File:** [`nlp/classifier.py`](nlp/classifier.py)
 
-A Support Vector Machine with a **linear kernel** classifies the preprocessed query into one of 10 intents:
+A Support Vector Machine with a linear kernel classifies the preprocessed query into one of 10 intents:
 
 | Intent Label | Description |
 |---|---|
@@ -278,8 +273,6 @@ If the cosine similarity score of the best match is below `0.3`, **or** the SVM 
 
 > *"Sorry, I could not find a relevant answer to your question. Please contact the XMUM Admissions Office at admissions@xmu.edu.my for further information."*
 
-The threshold of `0.3` was empirically determined using the evaluation script's threshold sweep (see [Section 9](#9-training--evaluation)).
-
 ---
 
 ## 5. Corpus & Data Design
@@ -325,7 +318,7 @@ The master corpus follows a structured JSON schema:
 | `out_of_scope` | 15 | 120 |
 | **Total** | **183** | **1,464** |
 
-Each QA pair has **~8 question paraphrases** on average. The training data is flattened row-by-row during training, meaning the SVM trains on 1,464 individual question samples. Each row maps to a `(question_text, intent_label)` pair.
+Each QA pair has **6-8 question paraphrases**. The training data is flattened row-by-row during training, meaning the SVM trains on 1,464 individual question samples. Each row maps to a `(question_text, intent_label)` pair.
 
 **Generated artefact:** `data/corpus_flat.csv` is auto-generated by `training/train.py` and stores all flattened rows with columns: `id`, `intent`, `question`, `answer`.
 
@@ -414,7 +407,7 @@ All serialised artefacts are stored in `models/` and are produced by `training/t
 
 **File:** [`templates/index.html`](templates/index.html)
 
-The UI is a **zero-dependency, self-contained** single-page application (~897 lines) served directly by Flask via `render_template`. It uses no JavaScript frameworks — all interactivity is vanilla JS.
+The UI is a zero-dependency, self-contained single-page application served directly by Flask using  `render_template`. It uses no JavaScript frameworks, all interactivity is vanilla JS.
 
 **Design System:**
 - Dark glassmorphism theme with ambient gradient glows
@@ -427,10 +420,7 @@ The UI is a **zero-dependency, self-contained** single-page application (~897 li
 | Feature | Implementation |
 |---------|----------------|
 | Split layout (sidebar + chat) | CSS Flexbox |
-| Responsive design | Media query hides sidebar at `≤768px`; mobile pills appear |
-| Typing indicator | 3-dot CSS animation (`typing-bounce` keyframes) |
 | Message slide-in animation | `message-slide-up` CSS keyframe |
-| Bot metadata display | Intent pill + confidence pill rendered below bot bubbles |
 | Health check button | `GET /health` via `fetch()` |
 | Conversation clear | Removes all messages except welcome |
 | Input clear button | Appears dynamically on input |
@@ -445,8 +435,6 @@ const response = await fetch('/chat', {
   body: JSON.stringify({ message: text })
 });
 ```
-
-> **Note:** The frontend currently does **not** render the `intent` and `confidence` fields from the API response despite receiving them (the `appendMessage` metadata argument is accepted but not displayed in the UI). This is a known issue — see [Section 13](#13-known-issues--technical-debt).
 
 ---
 
@@ -466,10 +454,10 @@ python training/train.py
 1. Loads and flattens `data/uni_faq_corpus.json` into 1,464 rows.
 2. Exports `data/corpus_flat.csv`.
 3. Preprocesses all questions using `nlp/preprocessor.py`.
-4. Fits and saves `TfidfVectorizer` → `models/tfidf_vectorizer.pkl`.
-5. Trains and saves `SVC` → `models/svm_classifier.pkl`.
-6. Saves the full TF-IDF matrix → `models/faq_vectors.pkl`.
-7. Saves FAQ metadata list → `models/faq_metadata.pkl`.
+4. Fits and saves `TfidfVectorizer` -> `models/tfidf_vectorizer.pkl`.
+5. Trains and saves `SVC` -> `models/svm_classifier.pkl`.
+6. Saves the full TF-IDF matrix -> `models/faq_vectors.pkl`.
+7. Saves FAQ metadata list -> `models/faq_metadata.pkl`.
 8. Prints a per-intent question count summary.
 
 ### Evaluation
@@ -483,11 +471,11 @@ python training/evaluate.py
 ```
 
 **Evaluation methodology:**
-- **5-fold stratified cross-validation** on all 1,464 questions.
+- 5-fold stratified cross-validation on all 1,464 questions.
 - Reports per-fold accuracy, mean CV accuracy, and standard deviation.
 - Generates a full `sklearn` classification report (precision, recall, F1 per intent).
 - Produces and saves a confusion matrix heatmap: `training/confusion_matrix.png`.
-- Runs a **threshold sweep** over `[0.3, 0.4, 0.5, 0.6]` to show the trade-off between fallback rate and answer rate, informing the `CONFIDENCE_THRESHOLD` choice in `pipeline.py`.
+- Runs a threshold sweep over `[0.3, 0.4, 0.5, 0.6]` to show the trade-off between fallback rate and answer rate.
 
 **Pre-generated confusion matrix:**
 
@@ -510,8 +498,8 @@ python training/evaluate.py
 
 **NLTK Data Packages required at runtime:**
 - `punkt` / `punkt_tab` — word tokenisation
-- `stopwords` — English stopword list
-- `wordnet` — WordNet lemmatiser lexicon
+- `stopwords` - English stopword list
+- `wordnet` - WordNet lemmatiser lexicon
 
 ---
 
@@ -573,7 +561,7 @@ python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk
 
 ### 11.6 Train the Models
 
-> **Skip this step** if the `models/` directory already contains the four `.pkl` files (they are committed to the repository).
+> Skip this step if the `models/` directory already contains the four `.pkl` files (they are committed to the repository).
 
 ```bash
 python training/train.py
@@ -611,7 +599,7 @@ The Flask development server starts on **http://127.0.0.1:5000**. Open this URL 
  * Debug mode: on
 ```
 
-> **Note:** The application runs in `debug=True` mode. This enables the auto-reloader and interactive debugger. **Do not use debug mode in production.**
+> **Note:** The application runs in `debug=True` mode. This enables the auto-reloader and interactive debugger.
 
 ### 11.8 Run the Evaluator (Optional)
 
@@ -653,80 +641,7 @@ print(resp.json())
 
 ---
 
-## 13. Known Issues & Technical Debt
-
-The following issues were identified through static code analysis of this repository:
-
-### 🔴 Critical
-
-| # | Issue | Location | Impact |
-|---|-------|----------|--------|
-| 1 | **✅Hardcoded relative paths in NLP modules** | `nlp/classifier.py` L4, `nlp/vectorizer.py` L4, `nlp/retriever.py` L5–6 | Default path constants (`"models/svm_classifier.pkl"`) are relative to the CWD, not the script's directory. This works only if the process is started from the project root. Calling from another CWD will raise `FileNotFoundError`. |
-| 2 | **✅No NLTK data download check** | `nlp/preprocessor.py` L3–5 | If `punkt`, `stopwords`, or `wordnet` are not downloaded, the import silently succeeds but `word_tokenize()` raises `LookupError` at runtime, crashing the server with a 500 error and no useful user-facing message. |
-| 3 | **✅Evaluate script uses relative paths** | `training/evaluate.py` L16–17 | `CORPUS_PATH = "data/uni_faq_corpus.json"` and `REPORTS_DIR = "training"` are relative; the script must be run from the project root. Running with `python training/evaluate.py` from the `training/` directory will fail. |
-
-### 🟡 Semantic / Logic Issues
-
-| # | Issue | Location | Impact |
-|---|-------|----------|--------|
-| 4 | **✅SVM confidence score is unused in gating** | `nlp/pipeline.py` L41, L47 | The SVM's `svm_confidence` is captured but the threshold gate only checks `similarity_score` (cosine). This means a high-SVM-confidence / low-cosine prediction still falls back. Conversely, a low-SVM-confidence / high-cosine match may be returned. A combined scoring strategy would be more robust. |
-| 5 | **✅`out_of_scope` intent can still retrieve an answer** | `nlp/retriever.py` L27–34, `nlp/pipeline.py` L47 | The `retrieve()` function will attempt to match against `out_of_scope` corpus entries. If the predicted intent is `out_of_scope` but cosine score is ≥ 0.3, the pipeline.py condition `predicted_intent != "out_of_scope"` correctly blocks it — but `retriever.retrieve()` has already performed unnecessary work. |
-| 6 | **✅`appendMessage` metadata parameter is silently ignored** | `templates/index.html` L800–803 | The API returns `intent` and `confidence` per response. The `appendMessage()` function accepts a `metadata` argument and constructs intent/confidence pills in the UI spec, but the conditional block building the pill HTML is missing — metadata is never displayed. |
-| 7 | **Typo in frontend suggestion text** | `templates/index.html` L644 | `"How much is the tuition fee in XMUM??"` has a double question mark. Minor, but visible to users. |
-| 8 | **✅`pandas` listed as dependency but not used in core code** | `requirements.txt` L6 | `pandas` is imported nowhere in `api/`, `nlp/`, or `training/`. The `corpus_flat.csv` is written using Python's built-in `csv` module. This adds ~40 MB of unnecessary installation overhead. |
-| 9 | **✅No `__init__.py` in `nlp/` or `api/` packages** | `nlp/`, `api/` | Both directories lack `__init__.py` files. Python package resolution works due to `sys.path.insert(0, ROOT_DIR)` hacks spread across multiple files. This is fragile and non-standard; explicit package files should be used. |
-| 10 | **✅Global mutable state via module-level singletons** | `nlp/classifier.py`, `nlp/vectorizer.py`, `nlp/retriever.py` | Models are stored as module-level globals (`_model`, `_vectorizer`, `_faq_vectors`). This is not thread-safe. Under Flask's multi-threaded WSGI deployment (e.g., with Gunicorn), concurrent writes during initialisation could cause race conditions. |
-
-### 🟢 Minor / Cosmetic
-
-| # | Issue | Location | Impact |
-|---|-------|----------|--------|
-| 11 | **`btn-theme-toggle` ID mismatch** | `templates/index.html` L621 | The health check button has `id="btn-theme-toggle"` but its function is `checkAppHealth()`. The ID implies a theme toggle that does not exist. |
-| 12 | **✅`static` folder referenced but not created** | `api/app.py` L18–19 | The Flask app declares `static_folder=".../static"`, but the `static/` directory is in `.gitignore` and does not exist. This causes a non-fatal warning but will silently fail if static assets are ever expected. |
-| 13 | **No rate limiting** | `api/routes.py` | The `/chat` endpoint has no throttling. Repeated rapid requests could lead to CPU spikes given the synchronous SVM inference. |
-
----
-
-## 14. Potential Improvements
-
-The following improvements would meaningfully advance the project while preserving its core concept of a deterministic, retrieval-based, lightweight FAQ chatbot:
-
-### NLP & Model Quality
-
-- **Sentence Transformers / SBERT embeddings** — Replace TF-IDF with semantic embeddings (e.g., `all-MiniLM-L6-v2` from `sentence-transformers`). These models capture semantic similarity ("cost of studying" ≈ "tuition fees") without relying on lexical overlap or handwritten synonym lists, dramatically improving retrieval recall.
-- **BM25 retrieval** — Augment or replace cosine similarity with BM25 (e.g., via `rank-bm25`) for a term-frequency-aware retrieval baseline that handles sparse queries better.
-- **Hybrid confidence scoring** — Combine SVM probability and cosine similarity into a weighted final confidence score, rather than using only cosine for the threshold gate.
-- **Expand synonym dictionary** — The current 13-entry synonym map misses many common university-specific synonyms (e.g., `"scholarship"` → `"bursary"`, `"course"` → `"programme"`, `"uni"` → `"university"`).
-- **Data augmentation** — Use back-translation or paraphrase models (e.g., `pegasus-paraphrase`) to increase question variant diversity per QA pair.
-
-### Software Engineering
-
-- **Add `__init__.py`** to `nlp/` and `api/` and remove `sys.path.insert` hacks across all files.
-- **Centralise path resolution** into a single `config.py` or use `importlib.resources` to resolve paths relative to the package root.
-- **Add `pytest` test suite** — Currently `tests/` is in `.gitignore` and absent. Unit tests for each NLP module and integration tests for API endpoints are essential.
-- **Lazy NLTK download** — Add a startup check (`try/except LookupError`) that downloads missing NLTK corpora automatically on first run.
-- **Thread-safe model loading** — Replace module-level globals with a thread-local or application-context pattern (e.g., Flask's `g` object or a class-based pipeline).
-- **Pin all dependency versions** — `requirements.txt` uses `>=` ranges. Add a `requirements-lock.txt` (via `pip freeze`) for reproducible builds.
-
-### Production Readiness
-
-- **WSGI server** — Replace the Flask development server with Gunicorn: `gunicorn -w 4 "api.app:create_app()"`.
-- **Dockerise the application** — Add a `Dockerfile` and `docker-compose.yml` for portable deployment.
-- **Environment configuration** — Move `debug`, `port`, and threshold parameters to environment variables or a `.env` file (e.g., using `python-dotenv`).
-- **Rate limiting** — Add `flask-limiter` to prevent abuse of the `/chat` endpoint.
-- **Logging** — Replace `print()` in training scripts with Python's `logging` module; add structured request logging in the Flask app.
-- **CORS restriction** — `CORS(app)` with no arguments allows all origins. Restrict to the deployment domain in production.
-
-### UX / Frontend
-
-- **Display intent and confidence pills** — The API returns this data; the UI already has the CSS classes for it — the JS logic to render them just needs to be completed (see Issue #6 above).
-- **Markdown rendering** — Bot answers sometimes contain bullet-point lists as plain text. A lightweight Markdown renderer (e.g., `marked.js`) would improve readability.
-- **Conversation history context** — Currently, each query is stateless. Storing a short conversation history client-side and appending it as context (e.g., "last asked about fees") could improve relevance for follow-up questions.
-- **Session persistence** — Use `localStorage` to persist the conversation across page refreshes.
-
----
-
-## 15. Acknowledgements
+## 13. Acknowledgements
 
 - **Corpus data** curated specifically for XMUM undergraduate admissions queries.
 - NLP pipeline built with [scikit-learn](https://scikit-learn.org/), [NLTK](https://www.nltk.org/), and [NumPy](https://numpy.org/).
