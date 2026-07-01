@@ -9,7 +9,7 @@
 1. [Project Overview](#1-project-overview)
 2. [System Architecture](#2-system-architecture)
 3. [Repository Structure](#3-repository-structure)
-4. [NLP Pipeline — How It Works](#4-nlp-pipeline--how-it-works)
+4. [NLP Pipeline - How It Works](#4-nlp-pipeline-how-it-works)
    - 4.1 [Text Preprocessing](#41-text-preprocessing)
    - 4.2 [TF-IDF Vectorisation](#42-tf-idf-vectorisation)
    - 4.3 [SVM Intent Classification](#43-svm-intent-classification)
@@ -168,7 +168,7 @@ xmum-faq-chatbot/
 
 ---
 
-## 4. NLP Pipeline — How It Works
+## 4. NLP Pipeline - How It Works
 
 ### 4.1 Text Preprocessing
 
