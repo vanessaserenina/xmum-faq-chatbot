@@ -63,27 +63,27 @@ The core NLP pipeline is built from classical machine learning techniques: **TF-
 │   app.py (Application Factory)  -->  routes.py (Blueprint)          │
 │                                                                     │
 │   Endpoints:                                                        │
-│     GET  /          -> Serves chat UI (render_template)              │
-│     POST /chat      -> Accepts JSON query, returns JSON answer       │
-│     GET  /health    -> Returns system health status                  │
+│     GET  /          -> Serves chat UI (render_template)             │
+│     POST /chat      -> Accepts JSON query, returns JSON answer      │
+│     GET  /health    -> Returns system health status                 │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  in-process function call
 ┌──────────────────────────▼──────────────────────────────────────────┐
 │                   NLP Inference Pipeline  (nlp/)                    │
 │                                                                     │
-│  1. preprocessor.py  -> lowercase, strip punctuation, tokenise,      │
-│                         remove stopwords, synonym expand, lemmatise  │
+│  1. preprocessor.py  -> lowercase, strip punctuation, tokenise,     │
+│                         remove stopwords, synonym expand, lemmatise │
 │                                                                     │
-│  2. vectorizer.py    -> TF-IDF transform (unigrams + bigrams,        │
+│  2. vectorizer.py    -> TF-IDF transform (unigrams + bigrams,       │
 │                         max 5000 features, sublinear TF scaling)    │
 │                                                                     │
 │  3. classifier.py    -> SVM (linear kernel, C=1.0) predicts intent  │
-│                         + probability score                          │
+│                         + probability score                         │
 │                                                                     │
-│  4. retriever.py     -> Cosine similarity against intent-filtered    │
+│  4. retriever.py     -> Cosine similarity against intent-filtered   │
 │                         FAQ vectors, returns best-matching answer   │
 │                                                                     │
-│  5. pipeline.py      -> Orchestrates 1-4, applies confidence gate,   │
+│  5. pipeline.py      -> Orchestrates 1-4, applies confidence gate,  │
 │                         returns structured JSON response            │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │  pickle.load at startup
